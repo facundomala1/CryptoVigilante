@@ -2,13 +2,15 @@
 Sistema de integración y monitoreo de precios de Bitcoin.
 
 ## 📋 Descripción
-Este proyecto implementa un ciclo ETL (Extract, Transform, Load) automatizado que consulta la API de CoinGecko y expone los datos a través de una API REST propia construida con FastAPI.
+Este proyecto implementa una arquitectura de microservicios para monitoreo financiero. 
+1. **Worker ETL:** Un script en segundo plano consulta la API de CoinGecko y persiste los datos en una base de datos SQL.
+2. **API REST:** Una interfaz construida con FastAPI que expone los datos almacenados para su consumo por clientes externos.
 
 ## 🛠 Tecnologías
 - **Lenguaje:** Python 3.10+
-- **ETL:** Requests, CSV
+- **Base de Datos:** SQLite (SQL)
 - **API:** FastAPI, Uvicorn
-- **Entorno:** Virtualenv (venv)
+- **Cliente HTTP:** Requests
 
 ## ⚙️ Instalación y Uso
 

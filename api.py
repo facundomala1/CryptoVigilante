@@ -1,45 +1,42 @@
 from fastapi import FastAPI
-import csv
+import sqlite3
 
 app = FastAPI()
+DB_NAME = "base_datos_crypto.db"
 
-ARCHIVO_CSV = "historial_bitcoin.csv"
+# Función auxiliar para conectarnos a la DB
+def get_db_connection():
+    conn = sqlite3.connect(DB_NAME)
+    conn.row_factory = sqlite3.Row 
+    return conn
 
 @app.get("/")
 def home():
-    return {"mensaje": "Bienvenido a la API de CryptoVigilante", "version": "1.0.0"}
+    return {"mensaje": "API Crypto SQL Activa v2.0"}
 
 @app.get("/historial")
 def obtener_historial():
-    datos = []
-    try:
-        with open(ARCHIVO_CSV, mode='r') as file:
-            reader = csv.DictReader(file) 
-            for row in reader:
-                datos.append(row)
-        return datos
-    except FileNotFoundError:
-        return {"error": "Aún no hay datos guardados. Ejecuta monitor.py primero."}
-    
-# Endpoint 3: Obtener solo el último precio registrado (Lógica de negocio)
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    cursor.execute("SELECT * FROM precios_bitcoin")
+    filas = cursor.fetchall()
+    conn.close()
+    return filas
+
 @app.get("/ultimo")
 def obtener_ultimo_precio():
-    ultimo_dato = None
-    try:
-        with open(ARCHIVO_CSV, mode='r') as file:
-            reader = csv.DictReader(file)
-            # Recorremos todo para quedarnos con el final
-            for row in reader:
-                ultimo_dato = row
-        
-        if ultimo_dato:
-            return {
-                "moneda": "Bitcoin",
-                "precio_actual": f"${ultimo_dato['Precio (USD)']}",
-                "actualizado_a_las": ultimo_dato['Hora']
-            }
-        else:
-            return {"mensaje": "No hay datos aún"}
-            
-    except FileNotFoundError:
-        return {"error": "El sistema de monitoreo no está activo"}
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    cursor.execute("SELECT * FROM precios_bitcoin ORDER BY id DESC LIMIT 1")
+    dato = cursor.fetchone()
+    conn.close()
+    
+    if dato:
+        return {
+            "moneda": "Bitcoin",
+            "precio": dato["precio_usd"],
+            "fecha": dato["fecha"],
+            "hora": dato["hora"]
+        }
+    else:
+        return {"error": "No hay datos en la base de datos"}
